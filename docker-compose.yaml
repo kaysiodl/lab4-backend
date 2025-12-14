@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: lab3_db
+    environment:
+      POSTGRES_USER: polina
+      POSTGRES_PASSWORD: qwe123
+      POSTGRES_DB: lab3
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
