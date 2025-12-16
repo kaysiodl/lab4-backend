@@ -17,11 +17,6 @@ public class ResultsRepository {
         entityManager.persist(result);
     }
 
-    @Transactional
-    public void clear() {
-        entityManager.createQuery("DELETE FROM Result").executeUpdate();
-    }
-
     public List<Result> getAll() {
         return entityManager.createQuery("SELECT r FROM Result r ORDER BY r.id", Result.class)
                 .getResultList();
@@ -35,4 +30,12 @@ public class ResultsRepository {
                 .setParameter("user", user)
                 .getResultList();
     }
+
+    @Transactional
+    public void deleteAllByUser(User user){
+        entityManager.createQuery("DELETE FROM Result r WHERE r.user = :user")
+                .setParameter("user", user)
+                .executeUpdate();
+    }
+
 }

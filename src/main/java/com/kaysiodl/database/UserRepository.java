@@ -2,6 +2,7 @@ package com.kaysiodl.database;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 
@@ -16,6 +17,13 @@ public class UserRepository {
     }
 
     public User findByLogin(String login) {
-        return (User) entityManager.createQuery("select u from User u where u.login = :login");
+        try {
+            return entityManager.createQuery(
+                            "SELECT u FROM User u WHERE u.login = :login", User.class)
+                    .setParameter("login", login)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
     }
 }

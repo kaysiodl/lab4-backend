@@ -41,6 +41,11 @@ public class ResultsService {
         return resultsRepository.findByUser(user);
     }
 
+    public void deleteByUser(User user) {
+        resultsRepository.deleteAllByUser(user);
+    }
+
+
     public boolean checkHit(double x, double y, double r) {
         return ((x * x + y * y <= (r * r)) && x >= 0 && y <= 0) || // sector
                 (x >= 0 && x <= r/2 && y <= r && y >= 0) || //square
