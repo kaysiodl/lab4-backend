@@ -3,12 +3,15 @@ package com.kaysiodl.service;
 import com.kaysiodl.database.Result;
 import com.kaysiodl.database.ResultsRepository;
 import com.kaysiodl.database.User;
+import com.kaysiodl.dto.PageResponse;
+import com.kaysiodl.dto.ResultsResponseDTO;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 
 @Stateless
 public class ResultsService {
@@ -41,6 +44,30 @@ public class ResultsService {
         return resultsRepository.findByUser(user);
     }
 
+
+    public PageResponse<Result> findByUserPaged(
+            User user,
+            int page,
+            int size,
+            String sortField,
+            String sortDir,
+            Map<String, Map<String, String>> filters
+    ) {
+        List<Result> data = resultsRepository.findByUserPaged(
+                user,
+                page,
+                size,
+                sortField,
+                sortDir,
+                filters
+        );
+
+        long total = resultsRepository.countByUser(user, filters);
+
+        return new PageResponse<>(data, total, page, size);
+    }
+
+
     public void deleteByUser(User user) {
         resultsRepository.deleteAllByUser(user);
     }
@@ -48,7 +75,7 @@ public class ResultsService {
 
     public boolean checkHit(double x, double y, double r) {
         return ((x * x + y * y <= (r * r)) && x >= 0 && y <= 0) || // sector
-                (x >= 0 && x <= r/2 && y <= r && y >= 0) || //square
-                ((y <= x/2 + r/2) && x <= 0 && y >= 0); //triangle
+                (x >= 0 && x <= r / 2 && y <= r && y >= 0) || //square
+                ((y <= x / 2 + r / 2) && x <= 0 && y >= 0); //triangle
     }
 }

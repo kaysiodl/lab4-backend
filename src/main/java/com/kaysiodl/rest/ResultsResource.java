@@ -2,6 +2,7 @@ package com.kaysiodl.rest;
 
 import com.kaysiodl.database.Result;
 import com.kaysiodl.database.User;
+import com.kaysiodl.dto.PageResponse;
 import com.kaysiodl.dto.ResultsRequestDTO;
 import com.kaysiodl.dto.ResultsResponseDTO;
 import com.kaysiodl.service.AuthService;
@@ -9,11 +10,13 @@ import com.kaysiodl.service.ResultsService;
 import com.kaysiodl.utils.ValidationUtil;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 @Path("/check")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -51,16 +54,63 @@ public class ResultsResource {
     }
 
 
+//    @GET
+//    public List<ResultsResponseDTO> getUserResults(
+//            @HeaderParam("X-Session-Id") String sessionId
+//    ) {
+//        User user = authService.getUserBySession(sessionId);
+//        return resultsService.findByUser(user)
+//                .stream()
+//                .map(this::toDto)
+//                .collect(Collectors.toList());
+//    }
+
     @GET
-    public List<ResultsResponseDTO> getUserResults(
-            @HeaderParam("X-Session-Id") String sessionId
+    public PageResponse<ResultsResponseDTO> getResults(
+            @HeaderParam("X-Session-Id") String sessionId,
+            @QueryParam("page") @DefaultValue("0") int page,
+            @QueryParam("size") @DefaultValue("10") int size,
+            @QueryParam("sort") String sort,
+            @Context UriInfo uriInfo
     ) {
         User user = authService.getUserBySession(sessionId);
-        return resultsService.findByUser(user)
-                .stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+
+        String sortField = null;
+        String sortDir = null;
+
+        if (sort != null) {
+            String[] parts = sort.split(",");
+            sortField = parts[0];
+            sortDir = parts.length > 1 ? parts[1] : "asc";
+        }
+
+        Map<String, Map<String, String>> filters = new HashMap<>();
+
+        uriInfo.getQueryParameters().forEach((key, values) -> {
+            if (key.startsWith("filter.")) {
+                String[] parts = key.split("\\.");
+                String field = parts[1];
+                String op = parts[2];
+
+                filters
+                        .computeIfAbsent(field, f -> new HashMap<>())
+                        .put(op, values.get(0));
+            }
+        });
+
+        PageResponse<Result> pageResult =
+                resultsService.findByUserPaged(
+                        user, page, size, sortField, sortDir, filters
+                );
+
+        return new PageResponse<>(
+                pageResult.getResults().stream().map(this::toDto).toList(),
+                pageResult.getTotal(),
+                page,
+                size
+        );
     }
+
 
     @DELETE
     public void clearUserPoints(@HeaderParam("X-Session-Id") String sessionId) {
