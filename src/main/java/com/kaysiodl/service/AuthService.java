@@ -52,6 +52,7 @@ public class AuthService {
 
     public User getUserBySession(String sessionId) {
         User user = sessions.get(sessionId);
+        System.out.println("Found user: " + user);
         if (user == null) {
             throw new RuntimeException("Сессия не найдена или истекла");
         }

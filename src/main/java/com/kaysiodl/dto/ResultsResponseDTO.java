@@ -8,10 +8,11 @@ import lombok.Setter;
 @Setter
 @Builder
 public class ResultsResponseDTO {
-    double x;
-    double y;
-    double r;
-    boolean hit;
+    private Long id;
+    private double x;
+    private double y;
+    private double r;
+    private boolean hit;
     private String currentTime;
     private String executionTime;
 }

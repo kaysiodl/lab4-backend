@@ -16,7 +16,9 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Path("/check")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -45,6 +47,7 @@ public class ResultsResource {
         try {
             user = authService.getUserBySession(sessionId);
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         Result result = resultsService.save(
@@ -54,16 +57,20 @@ public class ResultsResource {
     }
 
 
-//    @GET
-//    public List<ResultsResponseDTO> getUserResults(
-//            @HeaderParam("X-Session-Id") String sessionId
-//    ) {
-//        User user = authService.getUserBySession(sessionId);
-//        return resultsService.findByUser(user)
-//                .stream()
-//                .map(this::toDto)
-//                .collect(Collectors.toList());
-//    }
+    @GET
+    @Path("/all")
+    public List<ResultsResponseDTO> getUserResults(
+            @HeaderParam("X-Session-Id") String sessionId
+    ) {
+        if (sessionId == null || sessionId.isBlank()) {
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+        }
+        User user = authService.getUserBySession(sessionId);
+        return resultsService.findByUser(user)
+                .stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
 
     @GET
     public PageResponse<ResultsResponseDTO> getResults(
@@ -121,6 +128,7 @@ public class ResultsResource {
     private ResultsResponseDTO toDto(Result result) {
         return ResultsResponseDTO
                 .builder()
+                .id(result.getId())
                 .x(result.getX())
                 .y(result.getY())
                 .r(result.getR())
